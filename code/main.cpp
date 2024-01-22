@@ -16,16 +16,24 @@ float clc_speed(float v, float a, float LIM)
         return LIM;
     return v;
 }
+
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(SIZE_X, SIZE_Y), "SFML works!");
+    window.setVerticalSyncEnabled(true);
     sf::CircleShape shape(SHAPE_SIZE);
     shape.setFillColor(sf::Color::Green);
     float x = 0, y = 0, v_x = 0, v_y = 0, a_x = 800, a_y = 0;
     int fps = 0;
     sf::Clock clock;
     sf::Clock moveClock;
+    sf::Clock fpsClock;
     int64_t elapsed = 0, movTime = 0;
+
+    struct WorkField{
+        float hight = 100.0;
+        float winght = 100.0;
+    };
     while (window.isOpen())
     {
         elapsed = clock.restart().asMicroseconds();
@@ -60,11 +68,17 @@ int main()
             printf("%ld \r", movTime);
         }
         shape.setPosition(x, y);
-        //sf::sleep(sf::milliseconds(25));
-        fflush(stdout);
         window.clear();
         window.draw(shape);
         window.display();
+        fps++;
+        if(fpsClock.getElapsedTime().asMilliseconds() > 999)
+        {
+            fpsClock.restart();
+            printf("fps: %d\r", fps);
+            fps = 0;
+        }
+         fflush(stdout);
     }
 
     return 0;
