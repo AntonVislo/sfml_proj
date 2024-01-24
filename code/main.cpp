@@ -1,73 +1,107 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <iostream>
-#define LIM_VX   40.0f
-#define LIM_VY   40.0f
-#define SIZE_X 200.0
-#define SIZE_Y 100.0
-#define SHAPE_SIZE  6.0f
-float clc_speed(float v, float a, float LIM)
+#include <vector>
+enum KeyState
+    {
+        FREE,
+        PRESSED
+    };
+struct Key
 {
-    v += a;
-    if (v < (LIM * (-1)))
-        return  LIM * (-1);
-    if (v > LIM)
-        return LIM;
-    return v;
-}
+    KeyState state = KeyState::FREE;
+    sf::Keyboard::Key name;
+    Key(KeyState st, sf::Keyboard::Key nm)
+    {
+        name = nm;
+        state = st;
+    }
+};
+
+class MyObject{
+    private:
+    struct 
+    {
+        float sizeHight = 100.0, sizeWidth = 100.0;
+        float positionX = 100.0, positionY = 100.0;
+        float speedX = 0.0, speedY = 0.0, speedLimX = 5.0, speedLimY = 5.0;
+        float aX = 0.0, aY = 0.0;
+    }physics;
+    public:
+    MyObject()
+    {
+
+    }
+    void clc_speed(float time, int revers, char dir)
+    {
+        float *speed = &this->physics.speedX;
+        float *a = &this->physics.aX;
+        float *lim = &this->physics.speedLimX;  
+        if (dir=='Y')
+        {
+            speed = &this->physics.speedY;
+            a = &this->physics.aY;
+        }
+        if(revers == -1)
+            *a *=-1;
+        *speed += *a;
+        if(*speed > *lim)
+            *speed = *lim;
+        if(*speed < *lim* (-1))
+            *speed = *lim* (-1);
+    }
+};
+
+class MainDispatcher{
+
+};
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(SIZE_X, SIZE_Y), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(100, 100), "SFML works!");
+    std::vector<Key> KeyVector;
     window.setVerticalSyncEnabled(true);
-    sf::CircleShape shape(SHAPE_SIZE);
+    sf::CircleShape shape(50);
     shape.setFillColor(sf::Color::Green);
-    float x = 0, y = 0, v_x = 0, v_y = 0, a_x = 800, a_y = 0;
     int fps = 0;
     sf::Clock clock;
     sf::Clock moveClock;
     sf::Clock fpsClock;
     int64_t elapsed = 0, movTime = 0;
-
-    struct WorkField{
-        float hight = 100.0;
-        float winght = 100.0;
-    };
+    KeyVector.push_back(Key(KeyState::FREE, sf::Keyboard::Left));
+    KeyVector.push_back(Key(KeyState::FREE, sf::Keyboard::Right));
     while (window.isOpen())
     {
-        elapsed = clock.restart().asMicroseconds();
+        elapsed = clock.getElapsedTime().asMilliseconds();
+        if(elapsed > 10)
+        {
+            clock.restart();
+            for(int i = 0; i<size(KeyVector); i++ )
+            {
+                Key *K = &KeyVector[i];
+                if(sf::Keyboard::isKeyPressed(K->name))
+                {
+                    if(K->state ==KeyState::FREE)
+                    {
+                        std::cout<<K->name<<" pressed\n";
+                        K->state = KeyState::PRESSED;
+                    }
+                }
+                else if (K->state == KeyState::PRESSED)
+                {
+                    std::cout<<K->name<<" FREE\n";
+                    K->state = KeyState::FREE;
+                }
+            }
+        }
         sf::Event event;
-        float a =  800 * elapsed;
-        a = a/1000000.0f;
-        if (a_x < 0)
-            a_x = a * (-1);
-        else
-            a_x = a;
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        v_x = clc_speed(v_x, a_x, LIM_VX);
-        x += v_x*elapsed/1000000;
-        if (x > SIZE_X - 2*SHAPE_SIZE)
-        {
-            x = SIZE_X - 2*SHAPE_SIZE;
-            v_x = 0;
-            a_x *=(-1);
-            movTime = moveClock.restart().asMicroseconds();
-            printf("%ld \r", movTime);
-        }
-        else if (x < 0)
-        {
-            x = 0;
-            v_x = 0;
-            a_x *=-1;
-            movTime = moveClock.restart().asMicroseconds();
-            printf("%ld \r", movTime);
-        }
-        shape.setPosition(x, y);
         window.clear();
         window.draw(shape);
         window.display();
@@ -80,6 +114,5 @@ int main()
         }
          fflush(stdout);
     }
-
     return 0;
 }
